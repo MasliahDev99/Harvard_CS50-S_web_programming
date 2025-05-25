@@ -1,0 +1,148 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+header {
+    display: flex;
+    justify-content: flex-end;
+    padding: 15px;
+}
+
+header a {
+    margin-left: 15px;
+    color: #000000;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+header a:hover {
+    text-decoration: underline;
+}
+
+main {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.logo-container {
+    display: flex;
+    align-items: flex-end;
+    margin-bottom: 20px;
+}
+
+.logo {
+    font-size: 90px;
+    font-weight: bold;
+    color: #4285F4;
+}
+
+.logo span:nth-child(2) {
+    color: #EA4335;
+}
+
+.logo span:nth-child(3) {
+    color: #FBBC05;
+}
+
+.logo span:nth-child(4) {
+    color: #4285F4;
+}
+
+.logo span:nth-child(5) {
+    color: #34A853;
+}
+
+.logo span:nth-child(6) {
+    color: #EA4335;
+}
+
+.images-text {
+    color: #4285F4;
+    font-size: 24px;
+    margin-left: 10px;
+    margin-bottom: 15px;
+}
+
+.search-container {
+    width: 100%;
+    max-width: 584px;
+    margin-bottom: 30px;
+}
+
+.search-box {
+    width: 100%;
+    display: flex;
+    border: 1px solid #dfe1e5;
+    border-radius: 24px;
+    padding: 10px 15px;
+    height: 44px;
+}
+
+.search-box:hover {
+    box-shadow: 0 1px 6px rgba(32, 33, 36, 0.28);
+    border-color: rgba(223, 225, 229, 0);
+}
+
+.search-input {
+    flex: 1;
+    border: none;
+    outline: none;
+    font-size: 16px;
+}
+
+.buttons {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.search-button {
+    background-color: #f8f9fa;
+    border: 1px solid #f8f9fa;
+    border-radius: 4px;
+    color: #3c4043;
+    font-size: 14px;
+    padding: 10px 16px;
+    cursor: pointer;
+}
+
+.search-button:hover {
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+    border: 1px solid #dadce0;
+}
+
+footer {
+    background-color: #f2f2f2;
+    padding: 15px;
+    text-align: center;
+    color: #70757a;
+    font-size: 14px;
+    margin-top: auto;
+}
+
+@media (max-width: 650px) {
+    .search-container {
+        width: 90%;
+    }
+    
+    .logo {
+        font-size: 70px;
+    }
+    
+    .images-text {
+        font-size: 20px;
+    }
+}

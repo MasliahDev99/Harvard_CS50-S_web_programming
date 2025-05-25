@@ -35,7 +35,8 @@ def index(request):
     return render(request, 'ganaderia/index.html')
 
 
-
+def about(request):
+    return render(request,'ganaderia/main.html')
 
 
 def register_view(request):
@@ -45,33 +46,31 @@ def register_view(request):
 
     """
     if request.method == 'POST':
-        establecimiento = request.POST.get('username')
+        establishment = request.POST.get('username')
         RUT = request.POST.get('RUT')
         email = request.POST.get('email')
         password = request.POST.get('password')
         password2 = request.POST.get('confirmation')
-        codigo_criador = request.POST.get('criadorARU')
+        breed_code = request.POST.get('criadorARU')
 
         if password != password2:
             return render(request,'ganaderia/register.html',{
-                "message" : 'Las contraseña deben coincidir',
+                "message" : 'Password must match.',
             })
-        
-        # corroboramos que el codigo criador de ARU no este registrado en la app
-        
-        #procedemos a crear el usuario establecimiento
-        try:
-            nuevo_establecimiento = utils.crear_establecimiento(
-                username=establecimiento,RUT=RUT,codigo_criador_ARU=codigo_criador,email=email,password=password)
-            nuevo_establecimiento.save()            
+        try:   
+            #cambio aqui
+            new_establishment = utils.create_establishment(
+                username=establishment,RUT=RUT,ARU_bred_code=breed_code,email=email,password=password
+                )
+            new_establishment.save()            
 
         except IntegrityError as e:
             return render(request,'ganaderia/register.html',{
-                "message" : 'Ya existe un establecimiento con esos datos',
+                "message" : 'An establishment with these details already exists.',
             })
-        login(request, nuevo_establecimiento)
+        login(request, new_establishment)
         return HttpResponseRedirect(reverse("ganaderia:index"))
-        
+    
     return render(request, 'ganaderia/register.html')
 
 def login_view(request):
@@ -83,18 +82,22 @@ def login_view(request):
         RUT = request.POST.get('rut')
         password = request.POST.get('password')
 
-        #obtenemos el nombre del establecimiento
-        username = utils.obtener_nombre_con_rut(RUT)
+        # cambio aqui 
+        username = utils.get_name_by_rut(RUT)
         if username:
             establecimiento = authenticate(request,username=username, password = password)
             if establecimiento is not None:
                 login(request,establecimiento)
                 return redirect('ganaderia:dashboard')
             else:
-                messages.error(request, 'Credenciales inválidas. Por favor, intente nuevamente.')
+                messages.error(request, 'Invalid credentials, Please try again.')
         else:
-                messages.error(request, 'No se encontró un establecimiento con ese RUT.')
+                messages.error(request, 'No establishment found with that RUT.')
     
+    storage = get_messages(request)
+    for _ in storage:
+        pass
+
     return render(request, 'ganaderia/login.html')
 
 @login_required
@@ -112,176 +115,171 @@ def dashboard(request):
     Displays a summary of the establishment's sheep and sales data.
 
     """
-    #obtenemos el resumen de los ovinos que tiene el establecimiento
-    corderos, corderas, borregos, borregas, carneros, ovejas, total_ovejas = utils.obtener_todos_tipos_cantidad(request)
-    #obtenemos el resumen de las ventas del establecimiento 
-    ventas = utils.informacion_de_ventas(request) #diccionario
+    #cambio aqui
+    lambs_male, lambs_female, yearling_male, yearling_female, rams, ewes, total_sheeps = utils.get_sheep_count_by_type_and_age(request)
+    sales = utils.sale_information(request) #return a dictionary 
     
     context = {
-        'corderos': corderos,
-        'corderas': corderas,
-        'borregos': borregos,
-        'borregas': borregas,
-        'carneros': carneros,
-        'ovejas': ovejas,
-        'total_ovejas': total_ovejas,
-        'ventas': ventas,   
+        'corderos': lambs_male,      # Male lambs (0-6 months)
+        'corderas': lambs_female,    # Female lambs (0-6 months)
+        'borregos': yearling_male,   # Young male sheep (6-12 months)
+        'borregas': yearling_female, # Young female sheep (6-12 months)
+        'carneros': rams,            # Adult male sheep (>12 months)
+        'ovejas': ewes,              # Adult female sheep (>12 months)
+        'total_sheeps': total_sheeps,
+        'sales': sales,   
     }
     
     return render(request, 'ganaderia/dashboard.html', context)
 
 
 
-def obtener_datos_front(request):
-    """
-    Processes and extracts data from the frontend JSON request.
-    Returns the extracted parameters.
-    """
-    # Intentamos leer los datos del request.body si está en formato JSON
-    try:
-        data = json.loads(request.body)
-    except json.JSONDecodeError:
-        data = {}
 
-    # Extraemos parámetros del JSON
-    tipo_venta = data.get('tipo_venta', None)
-    por_lote = data.get('por_lote', False)
-    ovinos = data.get('ovinos', [])
-    peso_total = data.get('peso_total', None)
-    precio_kg = data.get('precio_kg', None)
-    remate_total = data.get('remate_total', None)
-    fecha_venta = data.get('fecha_venta', None)
-    valor_total = data.get('valor_total', None)
-
-    return tipo_venta, por_lote, ovinos, peso_total, precio_kg, remate_total, fecha_venta, valor_total
 
 
 @csrf_protect
 @login_required
-def ventas(request):
+def sales(request):
     """
     Displays the list of sheep sold and allows creating new sales entries.
-    
     """
-    #obtenemos las ventas del establecimiento
-    ventas = Venta.objects.filter(establecimiento=request.user).annotate(
-        oveja_count=Count('ovejas'),
-        peso_total_calculado=Coalesce(Sum('ovejas__peso', output_field=FloatField()), 0.0)
-    ).prefetch_related('ovejas')
-    #obtenemos todos los ovinos que tiene el establecimiento registrado
-    lista_ovejas = Oveja.objects.filter(establecimiento=request.user,estado='activa')
-
-
-    for venta in ventas:
-        for oveja in venta.ovejas.all():
-            oveja.edad_clasificada = oveja.clasificar_edad()
-
-    
     if request.method == 'POST':
-        print("capturamos los datos enviados del frontend")
         try:
-            tipo_venta, por_lote, ovinos, peso_total, precio_kg, remate_total, fecha_venta, valor_total = obtener_datos_front(request)
+            sale_type, by_lot, sheep_list, total_weight, price_per_kg, auction_total, sale_date, total_value, individual_prices = utils.get_frontend_data(request)
+
+            if not all([sale_type, sheep_list, sale_date]):
+                return JsonResponse({
+                    'error': 'Missing required fields: sale_type, sheep list, and sale_date are required'
+                }, status=400)
+
             try:
-                ovejas = Oveja.objects.filter(RP__in=ovinos,establecimiento = request.user)
+                selected_sheep = Oveja.objects.filter(id__in=sheep_list, establishment=request.user)
+                
+                if not selected_sheep.exists():
+                    return JsonResponse({
+                        'error': 'No valid sheep selected'
+                    }, status=400)
 
-                venta = utils.registrar_venta(
-                                        establecimiento=request.user,
-                                        lista_ovejas= ovejas,
-                                        tipo_venta=tipo_venta,
-                                        fecha_venta=fecha_venta,
-                                        peso_total= peso_total,
-                                        precio_kg=precio_kg,
-                                        remate_total=remate_total,
-                                        valor_total=valor_total,
-                                        
-                    )
-                if venta is not None:
-                    print("El objeto venta se ha gestionado.\n")
+                sale = utils.register_sale(
+                    establishment=request.user,
+                    sheeps=selected_sheep,
+                    sale_type=sale_type,
+                    sale_date=sale_date,
+                    total_weight=total_weight,
+                    price_per_kg=price_per_kg,
+                    auction_total=auction_total,
+                    total_value=total_value,
+                    individual_prices=individual_prices
+                )
+
+                if sale is not None:
+                    selected_sheep.update(status='sold')
+                    return JsonResponse({
+                        'success': True,
+                        'message': 'Sale successfully registered'
+                    })
                 else:
-                    print("La venta fue None")
-            except IntegrityError:
-                print("\nEntro al try y hubo un error en 'registrar_venta'\n")
-                return JsonResponse({'Error': 'Error al registrar la venta'},status = 400)
-            
-            
-            #asociamos las ovejas vendidas del establecimiento
-            venta.ovejas.set(ovejas)
-            #marcamos los ovinos de la tabla de registro como vendidos
-            ovejas.update(estado='vendida')
+                    return JsonResponse({
+                        'error': 'Failed to register sale'
+                    }, status=400)
 
+            except IntegrityError as e:
+                return JsonResponse({
+                    'error': f'Database error: {str(e)}'
+                }, status=400)
+            except Exception as e:
+                return JsonResponse({
+                    'error': f'Unexpected error: {str(e)}'
+                }, status=400)
 
-            return JsonResponse({'success': 'Venta registrada exitosamente'}, status=200)
         except Exception as e:
-            return JsonResponse({'error': str(e)}, status=400)
+            return JsonResponse({
+                'error': f'Server error: {str(e)}'
+            }, status=500)
 
+    # GET request handling
+    sales = Venta.objects.filter(establishment=request.user).annotate(
+        sheep_count=Count('sheep'),
+        calculated_total_weight=Coalesce(Sum('sheep__weight', output_field=FloatField()), 0.0)
+    ).prefetch_related('sheep')
+    
+    #cambio aqui
+    active_sheeps = utils.get_sheeps_by_status(request,'active')
+    #active_sheeps = Oveja.objects.filter(establishment=request.user, status='active')
 
-    return render(request, 'ganaderia/ventas.html',{
-        'ventas': ventas,
-        'lista_ovejas': lista_ovejas,
+    for sale in sales:
+        for sheep in sale.sheep.all():
+            sheep.classified_age = sheep.classify_age()
 
+    return render(request, 'ganaderia/ventas.html', {
+        'sales': sales,
+        'active_sheeps': active_sheeps,
     })
 
 
 
-
-
 @login_required
-def ovejas(request):
+def sheeps(request):
     """
 
     Displays all the sheep of the establishment, allows adding new ones and manages errors during the process.
     
-    """
+    """ 
+    #get active sheeps from the establishment
+    sheep = utils.get_sheeps(request)
 
-    storage = get_messages(request)
-    for _ in storage:  # Iterar por el almacenamiento para limpiarlo
-        pass
-    ovejas = utils.obtener_todas_las_ovejas(request)
-    razas = Raza.objects.all()
-    calificadores = CalificadorPureza.objects.all()  
+    breeds = Raza.objects.all()
 
-    modal_abierto = False
-    errores = []
+    purity_qualifiers = CalificadorPureza.objects.all()  
+
+    modal_open = False
+    errors = []
 
     if request.method == 'POST':
-        nueva_oveja, mensajes = utils.agregar_oveja(request)
-        print(mensajes)
-        if nueva_oveja:
-            messages.success(request, mensajes[0])
+        #cambio aqui
+        new_sheep, messages_list = utils.add_sheep(request)
+        #print the messages list to debug
+        print(messages_list)
+        if new_sheep:
+            messages.success(request, messages_list[0])
             return redirect('ganaderia:ovejas')
         else:
-            for mensaje in mensajes:
-                messages.error(request, mensaje)
-            errores = mensajes
-            modal_abierto = True
+            for message in messages_list:
+                messages.error(request, message)
+            errors = messages_list
+            modal_open = True
     
-    for oveja in ovejas:
-        oveja.edad_clasificada = oveja.clasificar_edad()
+    for sheep_item in sheep:
+        sheep_item.edad_clasificada = sheep_item.classify_age()
+
+    # Clear messages
+    storage = get_messages(request)
+    for _ in storage:
+        pass
 
     return render(request, 'ganaderia/ovejas.html', {
-        'ovejas': ovejas,
-        'razas': razas,
-        'calificadores': calificadores,
-        'modal_abierto': modal_abierto,
-        'errores':errores,
+        'sheeps': sheep,
+        'razas': breeds,
+        'purity_qualifiers': purity_qualifiers,
+        'modal_open': modal_open,
+        'errores': errors,
     })
 
 @login_required
-def ver_detalle(request, id_oveja):
+def view_details(request, sheep_id):
     """
         Display an specific sheep details of the establishment.
     """
-    oveja = get_object_or_404(Oveja, id=id_oveja)
-    print(oveja.calificador_pureza)
-    oveja.edad_clasificada = oveja.clasificar_edad()
-    print(f"Madre: {oveja.madre}")
-    print(f"Padre: {oveja.padre}")
+
+    # get the sheep reference
+    sheep = get_object_or_404(Oveja, id=sheep_id)
+    sheep.edad_clasificada = sheep.classify_age()
     return render(request, 'ganaderia/detalle.html',{
-        'oveja': oveja,
+        'sheep': sheep,
     })
 
 @login_required
-def eliminar_oveja(request,id_oveja):
+def delete_sheep(request,sheep_id):
     """
     Deletes an ovine record based on the provided ID.
 
@@ -292,38 +290,42 @@ def eliminar_oveja(request,id_oveja):
 
     Args:
         request: The HTTP request object.
-        id_oveja: The ID of the ovine to be deleted.
+        sheep_id: The ID of the ovine to be deleted.
 
     Returns:
         HttpResponseRedirect: Redirects to the ovine details page or the ovines list page.
     """
-    oveja = get_object_or_404(Oveja,id=id_oveja)
+     # Get the sheep object first
+    sheep = get_object_or_404(Oveja, id=sheep_id)
+    
     if request.method == 'POST':
-        motivo_eliminacion = request.POST.get('delete_reason')
-        observacion = request.POST.get('death_reason')
+        delete_reason = request.POST.get('delete_reason')
+        observation = request.POST.get('death_reason')
 
-        if motivo_eliminacion == 'muerte': 
-            # si el motivo es por fallecimiento entonces, guardamos en observacion del ovino su motivo y cambiamos el estado
-            oveja.estado = 'muerta'
-            oveja.observaciones = observacion
-            # fecha de muerte 
-            oveja.fecha_muerte = date.today()
-            oveja.save()
-            
-        elif motivo_eliminacion == 'error':
-            # si el motivo fue por error entonces se elimina la oveja
-            oveja.delete()
+        if delete_reason == 'muerte': 
+           
+           success,message = utils.update_status(
+            sheep,
+            'dead',
+            observation = observation,
+            death_date = date.today()
+           )
+           if not success:
+               messages.error(request, message[0])
+               return redirect('ganaderia:ver_detalle',sheep_id=sheep_id)
+        elif delete_reason == 'error':
+            sheep.delete()
         else:
-            messages.error(request, 'Motivo de eliminación no válido.')
-            return redirect('ganaderia:ver_detalle', id_oveja=id_oveja)
+            messages.error(request, 'Invalid deletion reason.')
+            return redirect('ganaderia:ver_detalle', sheep_id=sheep_id)
 
-        messages.success(request,f'El ovino RP: {oveja.RP} ha sido eliminado con exito')
+        messages.success(request, f'The sheep RP: {sheep.RP if sheep.RP else sheep.id} has been successfully deleted.')
         return redirect('ganaderia:ovejas')
-    return redirect('ganaderia:ver_detalle',id_oveja=id_oveja)
+    return redirect('ganaderia:ver_detalle', sheep_id=sheep_id)
 
 
 @login_required
-def editar_oveja(request, id_oveja):
+def edit_sheep(request, sheep_id):
     """
     Edits an ovine's details, such as weight and RP number.
 
@@ -333,55 +335,52 @@ def editar_oveja(request, id_oveja):
 
     Args:
         request: The HTTP request object.
-        id_oveja: The ID of the ovine to be edited.
+        sheep_id: The ID of the ovine to be edited.
 
     Returns:
         HttpResponse: Redirects to the ovine detail page or displays error messages if validation fails.
     """
-    oveja = get_object_or_404(Oveja, id=id_oveja, establecimiento=request.user)
-    errores = []
-    modal_abierto = False
+    sheep = get_object_or_404(Oveja, id=sheep_id, establishment=request.user)
+    errors = []
+    modal_open = False
 
     if request.method == 'POST':
-        nuevo_peso = request.POST.get('nuevo_peso')
-        nuevo_rp = request.POST.get('nuevo_rp')
+        new_weight = request.POST.get('nuevo_peso')
+        new_rp = request.POST.get('nuevo_rp')
 
         try:
-            oveja.peso = float(nuevo_peso)
+            sheep.weight = float(new_weight)
         except (ValueError, TypeError):
-            errores.append('El peso debe ser un número válido.')
+            errors.append('The weight must be a valid number.')
 
-        if not oveja.RP and nuevo_rp:
-            # exitoso -> Bool, mensaje -> list[str]
-            exitoso, mensajes = utils.set_rp(nuevo_RP=nuevo_rp, id_oveja=id_oveja)
-            #si no fue exitoso, agregamos a la lista de errores los mensajes y reiniciamos el RP
-            if not exitoso:
-                errores.extend(mensajes)
-                oveja.RP = None  # Resetea el RP si es invalido
+        if not sheep.RP and new_rp:
+            success, messages_list = utils.set_rp(new_rp=new_rp, sheep_id=sheep_id)
+            if not success:
+                errors.extend(messages_list)
+                sheep.RP = None
             else:
-                #si fue exitoso 
-                messages.success(request,mensajes[0])
-                return redirect('ganaderia:ver_detalle',id_oveja=id_oveja)
+                messages.success(request, messages_list[0])
+                return redirect('ganaderia:ver_detalle', sheep_id=sheep_id)
         
-        if errores:
-            for mensaje in errores:
-                messages.error(request, mensaje)
-            modal_abierto = True
+        if errors:
+            for message in errors:
+                messages.error(request, message)
+            modal_open = True
         else:
-            oveja.save()
-            messages.success(request, 'El ovino ha sido actualizado exitosamente.')
-            return redirect('ganaderia:ver_detalle', id_oveja=id_oveja)
+            sheep.save()
+            messages.success(request, 'The sheep has  been succesfully updated.')
+            return redirect('ganaderia:ver_detalle', sheep_id=sheep_id)
 
     context = {
-        'oveja': oveja,
-        'modal_abierto': modal_abierto,
-        'errores': errores,
+        'sheep': sheep,
+        'modal_open': modal_open,
+        'errores': errors,
     }
     return render(request, 'ganaderia/detalle.html', context)
 
-
+@csrf_protect
 @login_required
-def descargar_tabla(request):
+def download_table(request):
     """
     Handles the download of ovine records in the format specified by the user.
 
@@ -393,11 +392,19 @@ def descargar_tabla(request):
         HttpResponseRedirect: Redirects to the ovine page if the request is invalid.
     """
     if request.method == 'POST':
-        nombre = request.POST.get('nombre_archivo')
-        ext = request.POST.get('extension')
+        filename = request.POST.get('nombre_archivo')
+        extension = request.POST.get('extension')
 
-        respuesta = utils_descargas.descargar_registro(request.user,'registro_ovino',nombre_archivo=nombre,extension=ext)
-        messages.success(request,f'Se ha descargado con exito el archivo {nombre}')
+      
+
+        # Use the correct register_type
+        response = utils_descargas.download_register(
+            establishment=request.user,
+            register_type='ovine_record',  
+            filename=filename,
+            extension=extension
+        )
+        messages.success(request, f'The file {filename} has been successfully downloaded on Downloads directory.')
 
     return redirect('ganaderia:ovejas')
 
@@ -405,7 +412,7 @@ def descargar_tabla(request):
 
 
 @login_required
-def detalle_venta(request, id_venta):
+def sale_detail(request, sale_id):
     """
     Displays detailed information about a specific sale.
 
@@ -419,16 +426,16 @@ def detalle_venta(request, id_venta):
     Returns:
         HttpResponse: The sale details along with the total and average weight of the sheep.
     """
-    venta = get_object_or_404(Venta, id=id_venta)
+    sale = get_object_or_404(Venta, id=sale_id)
     
-    # Calcular el peso total y promedio
-    peso_total = venta.ovejas.aggregate(total=Sum('peso'))['total'] or 0
-    peso_promedio = peso_total / venta.ovejas.count() if venta.ovejas.count() > 0 else 0
-
+    # Calculate total and average weight
+    total_weight = sale.sheep.aggregate(total=Sum('weight'))['total'] or 0
+    average_weight = total_weight / sale.sheep.count() if sale.sheep.count() > 0 else 0
+ 
     context = {
-        'venta': venta,
-        'peso_total': peso_total,
-        'peso_promedio': peso_promedio,
+        'sale': sale,
+        'total_weight': total_weight,
+        'average_weight': average_weight,
     }
     
     return render(request, 'ganaderia/detalleVenta.html', context)
@@ -449,12 +456,12 @@ def planteletas(request):
     Returns:
         HttpResponse: Renders the planting page with the list of sheep.
     """
-    ovejas = utils.obtener_todas_las_ovejas(request)
+    ovejas = utils.get_sheeps(request)
+    
     for oveja in ovejas:
-        oveja.edad_clasificada = oveja.clasificar_edad()
+        oveja.edad_clasificada = oveja.classify_age()
+    
 
-
-    # traemos los ovinos que esten en los planteles
 
     return render(request, 'ganaderia/planteletas.html',{
         'ovejas': ovejas,
@@ -478,7 +485,7 @@ def hub(request):
 
 
 @login_required
-def analisis_ventas(request):
+def sales_analysis(request):
     """
     Displays the sales analysis dashboard.
 
@@ -494,7 +501,7 @@ def analisis_ventas(request):
 
 
 @login_required
-def analisis_ovinos(request):
+def sheep_analysis(request):
     """
     Displays the ovine analysis dashboard.
 
@@ -510,7 +517,7 @@ def analisis_ovinos(request):
 
 
 # API VIEW  PARA LOS OVINOS DEL ESTABLECIMIENTO
-class OvejaListadoAPI(APIView):
+class SheepListAPI(APIView):
     """
     API view for listing the sheep records for the user's establishment.
 
@@ -525,14 +532,13 @@ class OvejaListadoAPI(APIView):
     permission_classes = [IsAuthenticated] 
 
     def get(self, request):
-        # Filtramos las ovejas asociadas al establecimiento del usuario actual
-        ovejas = Oveja.objects.filter(establecimiento=request.user,estado='activa')
-        serializer = OvejaSerializer(ovejas, many=True)  # Usamos el serializer correcto
+        active_sheep = Oveja.objects.filter(establishment=request.user, status='active')
+        serializer = OvejaSerializer(active_sheep, many=True)
         return Response(serializer.data)
 
 
 # API VIEW PARA VENTAS DEL ESTABLECIMIENTO
-class VentaListadoAPI(APIView):
+class SalesListAPI(APIView):
     """
     API view for listing the sales records for the user's establishment.
 
@@ -546,16 +552,13 @@ class VentaListadoAPI(APIView):
     """
     permission_classes = [IsAuthenticated]
     def get(self, request):
-        # Filtrar las ventas del establecimiento del usuario actual
-        ventas = Venta.objects.filter(establecimiento=request.user)
-        # Usamos el serializador y pasamos el contexto con el request para poder acceder al establecimiento
-        serializer = VentaSerializer(ventas, many=True)  
-        # Devolvemos la respuesta con los datos serializados
+        sales = Venta.objects.filter(establishment=request.user)
+        serializer = VentaSerializer(sales, many=True)
         return Response(serializer.data)
     
 
 # API VIEW PARA EL ESTABLECIMIENTO 
-class EstablecimientoAPI(APIView):
+class EstablishmentAPI(APIView):
     """
     API view for retrieving the user's establishment details.
 
@@ -569,9 +572,9 @@ class EstablecimientoAPI(APIView):
         Response: The serialized establishment details.
     """
     permission_classes = [IsAuthenticated]
-    def get(self,request):
-        establecimiento = User.objects.filter(RUT=request.user.RUT).first()
-        serializer = EstablecimientoSerializer(establecimiento,many=False,context={'request': request})
+    def get(self, request):
+        establishment = User.objects.filter(RUT=request.user.RUT).first()
+        serializer = EstablecimientoSerializer(establishment, many=False, context={'request': request})
         return Response(serializer.data)
     
 

@@ -1,0 +1,145 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+header {
+    display: flex;
+    justify-content: flex-end;
+    padding: 15px;
+    border-bottom: 1px solid #ebebeb;
+}
+
+header a {
+    margin-left: 15px;
+    color: #000000;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+header a:hover {
+    text-decoration: underline;
+}
+
+main {
+    flex-grow: 1;
+    padding: 40px 20px;
+    max-width: 1140px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+h1 {
+    color: #d93025;
+    font-size: 20px;
+    margin: 25px 0;
+}
+
+.form-group {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+    max-width: 1000px;
+}
+
+.form-label {
+    width: 200px;
+    font-size: 14px;
+}
+
+.form-input {
+    flex-grow: 1;
+}
+
+input[type="text"] {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #d9d9d9;
+    border-radius: 1px;
+    font-size: 14px;
+}
+
+input[type="text"]:focus {
+    border-color: #4d90fe;
+    outline: none;
+}
+
+.form-hint {
+    width: 300px;
+    margin-left: 20px;
+    font-size: 12px;
+    color: #777;
+}
+
+.buttons-container {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 30px;
+}
+
+.clear-button {
+    background-color: #f8f9fa;
+    border: 1px solid #f8f9fa;
+    border-radius: 4px;
+    color: #3c4043;
+    font-size: 14px;
+    padding: 10px 16px;
+    margin-right: 10px;
+    cursor: pointer;
+}
+
+.clear-button:hover {
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+    border: 1px solid #dadce0;
+}
+
+.advanced-search-button {
+    background-color: #4285f4;
+    border: 1px solid #3079ed;
+    border-radius: 2px;
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+    padding: 10px 16px;
+    cursor: pointer;
+}
+
+.advanced-search-button:hover {
+    background-color: #357ae8;
+    border-color: #2f5bb7;
+}
+
+footer {
+    background-color: #f2f2f2;
+    padding: 15px;
+    text-align: center;
+    color: #70757a;
+    font-size: 14px;
+    margin-top: auto;
+}
+
+@media (max-width: 768px) {
+    .form-group {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .form-label {
+        width: 100%;
+        margin-bottom: 5px;
+    }
+    
+    .form-hint {
+        width: 100%;
+        margin-left: 0;
+        margin-top: 5px;
+    }
+}

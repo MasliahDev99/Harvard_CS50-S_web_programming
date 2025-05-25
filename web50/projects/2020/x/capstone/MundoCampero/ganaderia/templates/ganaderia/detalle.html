@@ -1,151 +1,160 @@
 {% extends 'ganaderia/layout.html' %}
 
+{% load static %}
+
 {% block body %}
 <div class="container py-5">
     <div class="row mb-4 align-items-center">
-        <div class="col-auto">
-            <a href="{% url 'ganaderia:ovejas' %}" class="btn btn-outline-secondary">
-                <i class="fas fa-arrow-left"></i> Volver
-            </a>
+        <div class="col-auto back-button-container">
+            
         </div>
         <div class="col">
             <h1 class="display-4 text-center">
-                Detalle del Ovino {% if oveja.RP %}RP: {{oveja.RP}}{% else %}ID: {{oveja.id}}{% endif %}
+                Sheep Details
             </h1>
         </div>
     </div>
 
     <div class="row g-4">
-        <!-- Información Básica -->
+        <!-- Basic Information -->
         <div class="col-md-6">
             <div class="card h-100 shadow-sm">
                 <div class="card-body">
-                    <h2 class="card-title text-center mb-4">Información Básica</h2>
+                    <h2 class="card-title text-center mb-4">Basic Information</h2>
                     <ul class="list-group list-group-flush">
                         <li class="list-group-item d-flex justify-content-between align-items-center">
                             <strong>RP:</strong>
-                            <span>{{oveja.RP|default:"No registrado"}}</span>
+                            <span>{{sheep.RP|default:"Not registered"}}</span>
                         </li>
                         <li class="list-group-item d-flex justify-content-between align-items-center">
                             <strong>BU:</strong>
-                            <span>{{oveja.BU|default:"No registrado"}}</span>
+                            <span>{{sheep.BU|default:"Not registered"}}</span>
                         </li>
                         <li class="list-group-item d-flex justify-content-between align-items-center">
-                            <strong>Sexo:</strong>
-                            <span>{{oveja.sexo}}</span>
+                            <strong>Sex:</strong>
+                            <span>{{sheep.sex}}</span>
                         </li>
                         <li class="list-group-item d-flex justify-content-between align-items-center">
-                            <strong>Raza:</strong>
-                            <span>{{oveja.raza}}</span>
+                            <strong>Breed:</strong>
+                            <span>{{sheep.raza}}</span>
                         </li>
                         <li class="list-group-item d-flex justify-content-between align-items-center">
-                            <strong>Pureza:</strong>
-                            <span>{{oveja.calificador_pureza}}</span>
+                            <strong>Purity:</strong>
+                            <span>{{sheep.purity_qualifier}}</span>
                         </li>
                     </ul>
                 </div>
             </div>
         </div>
 
-        <!-- Datos Físicos -->
+        <!-- Physical Data -->
         <div class="col-md-6">
             <div class="card h-100 shadow-sm">
                 <div class="card-body">
-                    <h2 class="card-title text-center mb-4">Datos Físicos</h2>
+                    <h2 class="card-title text-center mb-4">Physical Data</h2>
                     <ul class="list-group list-group-flush">
                         <li class="list-group-item d-flex justify-content-between align-items-center">
-                            <strong>Fecha de Nacimiento:</strong>
-                            <span>{{oveja.fecha_nacimiento}}</span>
+                            <strong>Birth Date:</strong>
+                            <span>{{sheep.birth_date}}</span>
                         </li>
                         <li class="list-group-item d-flex justify-content-between align-items-center">
-                            <strong>Edad:</strong>
-                            <span>{{oveja.edad}} meses</span>
+                            <strong>Age:</strong>
+                            <span>{{sheep.age}} months</span>
                         </li>
                         <li class="list-group-item d-flex justify-content-between align-items-center">
-                            <strong>Etapa:</strong>
-                            <span>{{oveja.edad_clasificada}}</span>
+                            <strong>Stage:</strong>
+                            <span>{{sheep.edad_clasificada}}</span>
                         </li>
                         <li class="list-group-item d-flex justify-content-between align-items-center">
-                            <strong>Peso:</strong>
-                            <span>{{oveja.peso}} kg</span>
+                            <strong>Weight:</strong>
+                            <span>{{sheep.weight}} kg</span>
                         </li>
                     </ul>
                 </div>
             </div>
         </div>
 
-        <!-- Información Genealógica -->
+        <!-- Genealogical Information -->
         <div class="col-md-6">
             <div class="card h-100 shadow-sm">
                 <div class="card-body">
-                    <h2 class="card-title text-center mb-4">Información Genealógica</h2>
-                    {% if oveja.calificador_pureza|lower == 'pedigri' or oveja.calificador_pureza|lower == 'pedigree' %}
+                    <h2 class="card-title text-center mb-4">Genealogical Information</h2>
+                    {% if sheep.purity_qualifier|lower == 'pedigri' or sheep.purity_qualifier|lower == 'pedigree' %}
                         <ul class="list-group list-group-flush">
                             <li class="list-group-item d-flex justify-content-between align-items-center">
-
-                                <strong>Padre:</strong>
-                                <span>RP {{oveja.padre|default:"No registrado"}}</span>
+                                <strong>Father:</strong>
+                                <span>RP {{sheep.father|default:"Not registered"}}</span>
                             </li>
                             <li class="list-group-item d-flex justify-content-between align-items-center">
-
-                                <strong>Madre:</strong>
-                                <span>RP {{oveja.madre|default:"No registrado"}}</span>
+                                <strong>Mother:</strong>
+                                <span>RP {{sheep.mother|default:"Not registered"}}</span>
                             </li>
                         </ul>
-                        {% if not oveja.padre or not oveja.madre %}
+                        {% if not sheep.father or not sheep.mother %}
                             <div class="text-center mt-3">
-                                <a href="#" class="btn btn-sm btn-success">Añadir campos</a>
+                                <a href="#" class="btn btn-sm btn-success">Add Fields</a>
                             </div>
                         {% endif %}
                     {% else %}
-                        <p class="text-center">Esta información solo está disponible para ovinos con calificador de pureza pedigri.</p>
+                        <p class="text-center">This information is only available for pedigree sheep.</p>
                     {% endif %}
                 </div>
             </div>
         </div>
 
-        <!-- Observaciones -->
+        <!-- Notes -->
         <div class="col-md-6">
             <div class="card h-100 shadow-sm">
                 <div class="card-body">
-                    <h2 class="card-title text-center mb-4">Observaciones</h2>
-                    <p class="card-text">{{oveja.observaciones|default:"No hay observaciones registradas."}}</p>
+                    <h2 class="card-title text-center mb-4">Notes</h2>
+                    <p class="card-text">{{sheep.notes|default:"No notes registered."}}</p>
                 </div>
             </div>
         </div>
+
+        <!-- Origin -->
         <div class="col-md-6">
             <div class="card h-100 shadow-sm">
                 <div class="card-body">
-                    <h2 class="card-title text-center mb-4">Lugar de Origen</h2>
-                    {% if oveja.establecimiento_origen%}
-                    <p class="card-text">Comprada en: <strong>{{oveja.establecimiento_origen}}</strong></p>
+                    <h2 class="card-title text-center mb-4">Place of Origin</h2>
+                    {% if sheep.origin_establishment %}
+                    <p class="card-text">Purchased from: <strong>{{sheep.origin_establishment}}</strong></p>
                     {% else %}    
-                    <p class="card-text text-primary">Establecimiento local: <strong>{{oveja.establecimiento.username}}</strong></p>
+                    <p class="card-text text-primary">Local establishment: <strong>{{sheep.establishment.username}}</strong></p>
                     {%endif%}
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Botones de Acción -->
+    <!-- Action Buttons -->
     <div class="d-flex flex-wrap justify-content-center gap-2 mt-5">
-        <button class="btn btn-outline-primary">Descargar Hoja de Vida</button>
-        <button class="btn btn-outline-primary">Descargar Certificado de Pureza</button>
-        <button class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#editModal">Editar</button>
-        <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
-            Eliminar
+        <button class="btn btn-outline-primary">Download Record Sheet</button>
+        <button class="btn btn-outline-primary">Download Purity Certificate</button>
+        {% if sheep.status == 'sold' %}
+        <button type="button" class="btn btn-success" disabled>
+            {{sheep.status}}
         </button>
+        {% else %}
+        <button class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#editModal">Edit</button>
+        <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+            Delete
+        </button>
+        {% endif %}
     </div>
 
-    <!-- Modal de Eliminación -->
+    <!-- Delete Modal -->
     <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
         {% include 'ganaderia/components/modals/eliminar_ovino.html' %}
     </div>
 
-    <!-- Modal de Edición -->
+    <!-- Edit Modal -->
     <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
         {% include 'ganaderia/components/modals/editar_ovino.html' %}
     </div>
 </div>
 {% endblock %}
 
+{% block scripts %}
+<script src="{% static 'ganaderia/js/back_button.js' %}"></script>
+{% endblock%}

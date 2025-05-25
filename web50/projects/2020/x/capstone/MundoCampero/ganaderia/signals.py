@@ -56,10 +56,13 @@ def cargar_datos_iniciales(sender, **kwargs):
                 'Suffolk'
                 ]
         for raza in razas:
-            Raza.objects.get_or_create(nombre=raza)
+            Raza.objects.get_or_create(name=raza)
         
         calificadores = ['pedigri','PO','MO','general']
         for calificador in calificadores:
-            CalificadorPureza.objects.get_or_create(nombre=calificador)
+            CalificadorPureza.objects.get_or_create(name=calificador)
+        
+
+
         
 

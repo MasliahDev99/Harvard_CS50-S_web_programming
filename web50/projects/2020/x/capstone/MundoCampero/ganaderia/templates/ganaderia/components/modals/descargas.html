@@ -1,7 +1,7 @@
 <div class="modal-dialog modal-lg">
     <div class="modal-content">
         <div class="modal-header bg-success text-white">
-            <h5 class="modal-title" id="downloadTableModalLabel">Descargar Registros</h5>
+            <h5 class="modal-title" id="downloadTableModalLabel">Download</h5>
             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body" id="descargaModal">
@@ -9,21 +9,21 @@
                 {% csrf_token %}
                 <div class="row g-3">
                     <div class="col-md-6">
-                        <label for="nombre_archivo" class="form-label">Nombre del archivo</label>
-                        <input type="text" class="form-control" id="nombre_archivo" name="nombre_archivo" placeholder="ej: registro_ovino">
+                        <label for="nombre_archivo" class="form-label">Filename</label>
+                        <input type="text" class="form-control" id="nombre_archivo" name="nombre_archivo" placeholder="ej: sheep_register">
                         <span id="file-error-span" class="text-danger" style="display: none; font-size: 0.9em;"></span>
                     </div>
                     <div class="col-md-6">
-                        <label for="extension" class="form-label">Extensión del archivo</label>
+                        <label for="extension" class="form-label">File extension</label>
                         <select class="form-select" id="extension" name="extension" required>
-                            <option value="">Seleccionar extensión</option>
+                            <option value="">Select extension</option>
                             <option value=".xlsx">Excel</option>
                             <option value=".csv">CSV</option>
                         </select>
                     </div>
                 </div>
                 <div class="mt-4">
-                    <button type="submit" class="btn btn-success" id="descargarBTN">Descargar</button>
+                    <button type="submit" class="btn btn-success" id="descargarBTN">Download</button>
                 </div>
             </form>
         </div>
@@ -44,7 +44,7 @@
         if (valorActual === '') {
             nombreArchivoInput.style.borderColor = 'red';
             spanInput.style.display = 'block';
-            spanInput.innerText = 'El nombre del archivo no puede estar vacío.';
+            spanInput.innerText = 'The filename cannot be empty.';
             descargarBTN.disabled = true;
         } else if (esNombreArchivoValido(valorActual)) {
             nombreArchivoInput.style.borderColor = 'green';
@@ -53,7 +53,7 @@
         } else {
             nombreArchivoInput.style.borderColor = 'red';
             spanInput.style.display = 'block';
-            spanInput.innerText = 'Error: El nombre solo puede contener letras, números y guiones bajos.';
+            spanInput.innerText = 'Error: The name can only contain letters, numbers, and underscores.';
             descargarBTN.disabled = true;
         }
     });

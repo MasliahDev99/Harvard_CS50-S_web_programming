@@ -1,26 +1,14 @@
 document.addEventListener('DOMContentLoaded', function() {
-    const plantelTypeRadios = document.querySelectorAll('input[name="plantelType"]');
-    const exposicionFields = document.getElementById('exposicionFields');
-    const ventaFields = document.getElementById('ventaFields');
+    const plantelList = document.getElementById('plantelList');
+    const newPlantelForm = document.getElementById('newPlantelForm');
+    const predefinedFieldsContainer = document.getElementById('predefinedFields');
+    const customFieldInput = document.getElementById('customField');
+    const addCustomFieldButton = document.getElementById('addCustomField');
+    const customFieldsContainer = document.getElementById('customFields');
 
-    plantelTypeRadios.forEach(radio => {
-        radio.addEventListener('change', function() {
-            if (this.value === 'exposicion') {
-                exposicionFields.style.display = 'block';
-                ventaFields.style.display = 'none';
-            } else {
-                exposicionFields.style.display = 'none';
-                ventaFields.style.display = 'block';
-            }
-        });
-    });
+    // cargamos los planteles predefinidos
+    
 
-    document.getElementById('addSheepForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        // Aquí puedes agregar la lógica para procesar el formulario
-        console.log('Formulario enviado');
-        // Cierra el modal después de procesar
-        var modal = bootstrap.Modal.getInstance(document.getElementById('addSheepModal'));
-        modal.hide();
-    });
+
+    
 });

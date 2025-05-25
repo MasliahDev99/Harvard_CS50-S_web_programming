@@ -2,7 +2,7 @@
 const ctxOvinos = document.getElementById('myChartOvinos').getContext('2d');
 let myChartOvinos;
 
-const stageTypes = ['Corderas', 'Borregas', 'Corderos', 'Borregos', 'Carneros', 'Ovejas'];
+const stageTypes = ['Lambs', 'Ewe Lambs', 'Yearlings', 'Yearling Ewes', 'Rams', 'Ewes'];
 
 // Función para inicializar el gráfico de ovinos
 function initOvinosChart() {
@@ -38,12 +38,12 @@ function obtenerDatosOvinos() {
             console.log('Datos de ovinos recibidos:', data); // Para depuración
 
             let cantidadOvinos = {
-                Corderas: data.cantidad_ovinos.Corderas || 0,
-                Borregas: data.cantidad_ovinos.Borregas || 0,
-                Corderos: data.cantidad_ovinos.Corderos || 0,
-                Borregos: data.cantidad_ovinos.Borregos || 0,
-                Carneros: data.cantidad_ovinos.Carneros || 0,
-                Ovejas: data.cantidad_ovinos.Ovejas || 0
+                Lambs: data.sheep_count['Lambs'] || 0,
+                'Ewe Lambs': data.sheep_count['Ewe Lambs'] || 0,
+                Yearlings: data.sheep_count['Yearlings'] || 0,
+                'Yearling Ewes': data.sheep_count['Yearling Ewes'] || 0,
+                Rams: data.sheep_count['Rams'] || 0,
+                Ewes: data.sheep_count['Ewes'] || 0
             };
 
             console.log('Cantidad de ovinos:', cantidadOvinos); // Para depuración
@@ -62,14 +62,7 @@ function actualizarGraficaOvinos(cantidadOvinos) {
     const noOvinosLabel = document.getElementById('noOvinosDistribucionLabel');
     if (hayOvinos(cantidadOvinos)) {
         noOvinosLabel.style.display = 'none';
-        myChartOvinos.data.datasets[0].data = [
-            cantidadOvinos.Corderas,
-            cantidadOvinos.Borregas,
-            cantidadOvinos.Corderos,
-            cantidadOvinos.Borregos,
-            cantidadOvinos.Carneros, 
-            cantidadOvinos.Ovejas     
-        ];
+        myChartOvinos.data.datasets[0].data = stageTypes.map(type => cantidadOvinos[type]);
         myChartOvinos.update();
     } else {
         noOvinosLabel.style.display = 'block';
@@ -93,4 +86,3 @@ document.addEventListener('DOMContentLoaded', function () {
     initOvinosChart();
     obtenerDatosOvinos();
 });
-

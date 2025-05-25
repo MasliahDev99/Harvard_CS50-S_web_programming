@@ -1,7 +1,8 @@
 # serializers.py
 from rest_framework import serializers
 from .models import Oveja,Venta,User
-from .utils import obtener_todos_tipos_cantidad,informacion_de_ventas
+
+from .utils import get_sheep_count_by_type_and_age, sale_information
 
 """
 This module contains serializers for the 'Oveja' (Sheep), 'Venta' (Sale), and 'Establecimiento' (Establishment) models.
@@ -21,10 +22,10 @@ sent from the server to the frontend for display in the dashboard and analysis v
 
 ### Key Features:
 - `cantidad_ovinos`: A dynamic field that calculates the number of sheep by type (e.g., lambs, ewes, rams, etc.) for the 
-  establishment, using the `obtener_todos_tipos_cantidad` function.
+  establishment, using the `get_sheep_count_by_type_and_age` function.
   
 - `cantidad_ventas_cat`: A dynamic field that calculates the number of sales per category (e.g., auction, slaughterhouse, 
-  individual sales, donations) using the `informacion_de_ventas` function.
+  individual sales, donations) using the `sale_information` function.
 
 ### Purpose:
 These serializers are used to send dynamic data from the backend to the frontend, where it can be visualized in the dashboard 
@@ -49,21 +50,22 @@ class OvejaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Oveja
         fields = [
+            'id',
             'BU',
             'RP',
-            'nombre',
-            'peso',
+            'name',
+            'weight',
             'raza',
-            'edad',
-            'fecha_nacimiento',
-            'sexo',
-            'calificador_pureza',
-            'observaciones',
-            'padre',
-            'madre',
-            'establecimiento',
-            'estado',
-            'establecimiento_origen',
+            'age',
+            'birth_date',
+            'sex',
+            'purity_qualifier',
+            'notes',
+            'father',
+            'mother',
+            'establishment',
+            'status',
+            'origin_establishment',
             ]
     
 class VentaSerializer(serializers.ModelSerializer):
@@ -71,58 +73,56 @@ class VentaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Venta
         fields = [
-            'ovejas',
-            'fecha_venta',
-            'peso_total',
-            'valor_carne',
-            'establecimiento',
-            'tipo_venta',
+            'id',
+            'sheeps',
+            'sale_date',
+            'total_weight',
+            'meat_value',
+            'establishment',
+            'sale_type',
             ]
         
 class EstablecimientoSerializer(serializers.ModelSerializer):
-    cantidad_ovinos = serializers.SerializerMethodField()
-    cantidad_ventas_cat = serializers.SerializerMethodField()
+    sheep_count = serializers.SerializerMethodField()
+    sale_category_count = serializers.SerializerMethodField()
 
     class Meta:
         model = User
         fields = [
             'id',
             'RUT',
-            'fecha_registro',
-            'registro_ARU_criador',
+            'registration_date',
+            'ARU_bred_registration',
 
             # cantidad de ovinos y ventas
-            'cantidad_ovinos',
-            'cantidad_ventas_cat',
+            'sheep_count',
+            'sale_category_count',
         ]
     
-    def get_cantidad_ovinos(self, obj):
-       
-        corderos, corderas, borregos, borregas, carneros, ovejas, total_ovejas = obtener_todos_tipos_cantidad(self.context['request'])
+    def get_sheep_count(self, obj):
+        lambs, ewe_lambs, yearlings, yearling_ewes, rams, ewes, total_sheep = get_sheep_count_by_type_and_age(self.context['request'])
 
-        # Devolvemos el diccionario con la cantidad de ovinos
+        # Return the dictionary with the sheep count
         return {
-            'Corderos': corderos,
-            'Corderas': corderas,
-            'Borregos': borregos,
-            'Borregas': borregas,
-            'Carneros': carneros,
-            'Ovejas': ovejas,
-            'Total Ovejas': total_ovejas
+            'Lambs': lambs,
+            'Ewe Lambs': ewe_lambs,
+            'Yearlings': yearlings,
+            'Yearling Ewes': yearling_ewes,
+            'Rams': rams,
+            'Ewes': ewes,
+            'Total Sheep': total_sheep
         }
     
-    def get_cantidad_ventas_cat(self, obj):
-       
-        ventas_info = informacion_de_ventas(self.context['request'])
+    def get_sale_category_count(self, obj):
+        sales_info = sale_information(self.context['request'])
 
-        # Retornamos el diccionario con la cantidad de ventas por categoría
+        # Return the dictionary with the sales count by category
         return {
-            'cantidad_ventas_por_remate': ventas_info['cantidad_ventas_por_remate'],
-            'cantidad_ventas_por_frigorifico': ventas_info['cantidad_ventas_por_frigorifico'],
-            'cantidad_ventas_por_individual': ventas_info['cantidad_ventas_por_individual'],
-            'cantidad_donaciones': ventas_info['cantidad_donaciones'],
+            'auction_sales_count': sales_info['auction_sales_count'],
+            'slaughterhouse_sales_count': sales_info['slaughterhouse_sales_count'],
+            'individual_sales_count': sales_info['individual_sales_count'],
+            'donation_count': sales_info['total_donations'],
         }
-
     
 
     

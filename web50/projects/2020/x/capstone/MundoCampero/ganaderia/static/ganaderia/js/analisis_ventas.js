@@ -2,7 +2,7 @@
 const ctx = document.getElementById('myChart').getContext('2d');
 let myChart;
 
-const salesTypes = ['Remates', 'Individuales', 'Frigorífico', 'Donaciones'];
+const salesTypes = ['Auctions', 'Individuals', 'Slaughterhouse', 'Donations'];
 
 // Función para inicializar el gráfico de ventas
 function initVentasChart() {
@@ -37,17 +37,17 @@ function obtenerDatosVentas() {
         .then(data => {
             console.log('Datos de ventas recibidos:', data); // Para depuración
 
-            let cantidadVentas = {
-                Remates: data.cantidad_ventas_cat.cantidad_ventas_por_remate || 0,
-                Individuales: data.cantidad_ventas_cat.cantidad_ventas_por_individual || 0,
-                Frigorífico: data.cantidad_ventas_cat.cantidad_ventas_por_frigorifico || 0,
-                Donaciones: data.cantidad_ventas_cat.cantidad_donaciones || 0
+            let salesCount = {
+                Auctions: data.sale_category_count.auction_sales_count|| 0,
+                Individuals: data.sale_category_count.individual_sales_count || 0,
+                Slaughterhouse: data.sale_category_count.slaughterhouse_sales_count || 0,
+                Donations: data.sale_category_count.donation_count || 0
             };
 
-            console.log('Cantidad de ventas:', cantidadVentas); // Para depuración
+            console.log('Cantidad de ventas:', salesCount); // Para depuración
 
             // Actualizamos la gráfica
-            actualizarGraficaVentas(cantidadVentas);
+            actualizarGraficaVentas(salesCount);
         })
         .catch(error => {
             console.error('Error al obtener los datos de ventas:', error);
@@ -56,15 +56,15 @@ function obtenerDatosVentas() {
 }
 
 // Función para actualizar el gráfico de ventas
-function actualizarGraficaVentas(cantidadVentas) {
+function actualizarGraficaVentas(salesCount) {
     const noVentasLabel = document.getElementById('noVentasLabel');
-    if (hayVentas(cantidadVentas)) {
+    if (hayVentas(salesCount)) {
         noVentasLabel.style.display = 'none';
         myChart.data.datasets[0].data = [
-            cantidadVentas.Remates,
-            cantidadVentas.Individuales,
-            cantidadVentas.Frigorífico,
-            cantidadVentas.Donaciones
+            salesCount.Auctions,
+            salesCount.Individuals,
+            salesCount.Slaughterhouse,
+            salesCount.Donations
         ];
         myChart.update();
     } else {
@@ -74,8 +74,8 @@ function actualizarGraficaVentas(cantidadVentas) {
     }
 }
 
-function hayVentas(cantidadVentas) {
-    return Object.values(cantidadVentas).some(cantidad => cantidad > 0);
+function hayVentas(salesCount) {
+    return Object.values(salesCount).some(count => count > 0);
 }
 
 function mostrarMensajeError() {

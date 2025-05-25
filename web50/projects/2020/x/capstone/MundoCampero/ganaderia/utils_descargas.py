@@ -17,6 +17,7 @@ import os
 import pdfkit
 import pandas as pd
 import csv 
+from pathlib import Path
 from django.conf import settings
 from django.template.loader import render_to_string
 from django.http import HttpResponse
@@ -27,128 +28,147 @@ from .models import Oveja, Venta
 MEDIA_ROOT = settings.MEDIA_ROOT
 MEDIA_URL = settings.MEDIA_URL
 
-def convertir_formato_xlsx(contenido, nombre_archivo):
+
+#Determine the Downloads directory path
+def get_downloads_path():
+    """
+        Determines the path to the Downloads directory.
+        return:
+            str: The path to the Downloads directory.
+    """
+    home = Path.home()
+    possible_dirs = ['Downloads','Descargas'] #Add more localized name if needed
+    for dir_name in possible_dirs:
+        downloads_path = home / dir_name
+        if downloads_path.exists():
+            return downloads_path
+    return home
+
+DOWNLOADS_DIR = get_downloads_path()
+
+
+def format_to_xlsx(content, filename):
     """
     Converts data into XLSX format and saves it in the media folder.
 
     Args:
-        contenido (list of dict): The data to convert into XLSX format.
-        nombre_archivo (str): The name of the output file (without extension).
+        content (list of dict): The data to convert into XLSX format.
+        filename (str): The name of the output file (without extension).
 
     Returns:
         str: The path to the saved XLSX file.
     """
-    df = pd.DataFrame(contenido)
+    df = pd.DataFrame(content)
     output = BytesIO()
     with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-        df.to_excel(writer, index=False, sheet_name='Contenido')
+        df.to_excel(writer, index=False, sheet_name='Content')
         writer.close()  # Ensure data is written correctly
 
     output.seek(0)
 
     # Define the path to save the file in the media folder
-    path = os.path.join(MEDIA_ROOT, f'{nombre_archivo}.xlsx')
+    path = os.path.join(DOWNLOADS_DIR, f'{filename}.xlsx')
     with open(path, 'wb') as f:
         f.write(output.read())
 
     return path
 
-def generar_csv(nombre_archivo: str, datos: list, campos: list = ['BU', 'RP', 'nombre', 'peso(kg)', 'raza', 'edad(meses)', 'sexo', 'calificador_pureza', 'estado','Lugar_origen']):
+def generate_csv(filename: str, data: list, fields: list = ['BU', 'RP', 'name', 'weight(kg)', 'breed', 'age(months)', 'sex', 'purity_qualifier', 'status', 'origin_place']):
     """
     Generates and saves a CSV file in the media folder.
 
     Args:
-        nombre_archivo (str): The name of the file (without extension).
-        datos (list): A list of dictionaries containing the data for the CSV.
-        campos (list): A list of column names for the CSV file.
+        filename (str): The name of the file (without extension).
+        data (list): A list of dictionaries containing the data for the CSV.
+        fields (list): A list of column names for the CSV file.
 
     Returns:
         str: The path to the saved CSV file.
     """
-    path = os.path.join(MEDIA_ROOT, f'{nombre_archivo}.csv')
+    path = os.path.join(MEDIA_ROOT, f'{filename}.csv')
 
     with open(path, 'w', newline='') as f:
-        writer = csv.DictWriter(f, fieldnames=campos)
+        writer = csv.DictWriter(f, fieldnames=fields)
         writer.writeheader()  # Write column headers
-        for fila in datos:
-            writer.writerow(fila)  # Write each row of data
+        for row in data:
+            writer.writerow(row)  # Write each row of data
 
     return path
 
-def obtener_contenido_registro(establecimiento, tipo_registro: str = 'registro_ovino'):
+def get_register_content(establishment, register_type: str = 'ovine_record'):
     """
     Fetches the content for the specified record type (ovine or sales records).
 
     Args:
-        establecimiento: The establishment from which to fetch the records.
-        tipo_registro: The type of record ('registro_ovino' or 'registro_venta').
+        establishment: The establishment from which to fetch the records.
+        register_type: The type of record ('ovine_record' or 'sales_record').
 
     Returns:
         list or dict: The content for the specified record type.
     """
-    ovinos = Oveja.objects.filter(establecimiento=establecimiento, estado='activa')
+    active_sheep = Oveja.objects.filter(establishment=establishment, status='active')
 
-    if tipo_registro not in ['registro_ovino', 'registro_venta']:
-        raise ValueError(f"Invalid record type: {tipo_registro}")
+    if register_type not in ['ovine_record', 'sales_record']:
+        raise ValueError(f"Invalid record type: {register_type}")
 
-    if tipo_registro == 'registro_ovino':
-        if not ovinos:
-            return {'message': 'No active ovinos found for this establishment.'}
-        contenido = [{
-            'RP': ovino.RP if ovino.RP else None,
-            'BU': ovino.BU if ovino.BU else None,
-            'nombre': ovino.nombre,
-            'peso(kg)': ovino.peso,
-            'raza': ovino.raza,
-            'edad(meses)': ovino.edad,
-            'sexo': ovino.sexo,
-            'calificador_pureza': ovino.calificador_pureza,
-            'estado': ovino.estado,
-            'Lugar_origen': ovino.establecimiento_origen if ovino.establecimiento_origen else ovino.establecimiento.username,
-        } for ovino in ovinos]
+    if register_type == 'ovine_record':
+        if not active_sheep:
+            return {'message': 'No active sheep found for this establishment.'}
+        content = [{
+            'RP': sheep.RP if sheep.RP else None,
+            'BU': sheep.BU if sheep.BU else None,
+            'name': sheep.name,
+            'weight(kg)': sheep.weight,
+            'breed': sheep.raza.name,
+            'age(months)': sheep.age,
+            'sex': sheep.sex,
+            'purity_qualifier': sheep.purity_qualifier.name,
+            'status': sheep.status,
+            'origin_place': sheep.origin_establishment if sheep.origin_establishment else sheep.establishment.username,
+        } for sheep in active_sheep]
 
     else:
-        ventas = Venta.objects.filter(establecimiento=establecimiento)
-        if not ventas:
+        sales = Venta.objects.filter(establishment=establishment)
+        if not sales:
             return {'message': 'No sales records found for this establishment.'}
-        contenido = [
+        content = [
             {
-                'fecha_venta': venta.fecha_venta,
-                'tipo_venta': venta.tipo_venta,
-                'peso_total(kg)': venta.peso_total,
-                'valor_carne(US$/kg)': venta.valor_carne,
-                'valor(US$)': venta.valor,
-                'ovejas': [oveja.nombre for oveja in venta.ovejas.all()]
-            } for venta in ventas
+                'sale_date': sale.sale_date,
+                'sale_type': sale.sale_type,
+                'total_weight(kg)': sale.total_weight,
+                'meat_value(US$/kg)': sale.meat_value,
+                'value(US$)': sale.value,
+                'sheep': [sheep.name for sheep in sale.sheep.all()]
+            } for sale in sales
         ]
 
-    return contenido
+    return content
 
-def descargar_registro(establecimiento, tipo_registro: str = 'registro_ovino', nombre_archivo: str = 'tabla_ovinos', extension: str = '.xlsx'):
+def download_register(establishment, register_type: str = 'ovine_record', filename: str = 'sheep_table', extension: str = '.xlsx'):
     """
     Generates and saves a file in the specified format based on the record type.
 
     Args:
-        establecimiento: The establishment to fetch data for.
-        tipo_registro (str): Type of record ('registro_ovino', 'registro_venta').
-        nombre_archivo (str): Name of the output file (without extension).
+        establishment: The establishment to fetch data for.
+        register_type (str): Type of record ('ovine_record', 'sales_record').
+        filename (str): Name of the output file (without extension).
         extension (str): File format for the download ('.xlsx', '.csv').
 
     Returns:
         HttpResponse: Response with the requested file ready for download.
     """
-    contenido = obtener_contenido_registro(establecimiento=establecimiento, tipo_registro=tipo_registro)
+    content = get_register_content(establishment=establishment, register_type=register_type)
 
     if extension == '.xlsx':
-        ruta_archivo = convertir_formato_xlsx(contenido=contenido, nombre_archivo=nombre_archivo)
+        path = format_to_xlsx(content=content, filename=filename)
     elif extension == '.csv':
-        ruta_archivo = generar_csv(nombre_archivo=nombre_archivo, datos=contenido)
+        path = generate_csv(filename=filename, data=content)
     else:
         raise ValueError(f"Unsupported file extension: {extension}")
 
     # Serve the saved file from the /media/ folder
-    with open(ruta_archivo, 'rb') as f:
+    with open(path, 'rb') as f:
         response = HttpResponse(f.read(), content_type='application/octet-stream')
-        response['Content-Disposition'] = f'attachment; filename={os.path.basename(ruta_archivo)}'
+        response['Content-Disposition'] = f'attachment; filename={os.path.basename(path)}'
 
     return response

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="advanced.css">
+    <title>Google Advanced Search</title>
+    
+</head>
+<body>
+    <header>
+        <a href="index.html">Search</a>
+        <a href="images.html">Google Images</a>
+    </header>
+    
+    <main>
+        <h1>Advanced Search</h1>
+        
+        <form action="https://www.google.com/search" method="get">
+            <div class="form-group">
+                <div class="form-label">All these words:</div>
+                <div class="form-input">
+                    <input type="text" name="as_q" placeholder="Type important words">
+                </div>
+                <div class="form-hint">Type the important words: tri-color rat terrier</div>
+            </div>
+            
+            <div class="form-group">
+                <div class="form-label">This exact word or phrase:</div>
+                <div class="form-input">
+                    <input type="text" name="as_epq" placeholder="Put exact words in quotes">
+                </div>
+                <div class="form-hint">Put exact words in quotes: "rat terrier"</div>
+            </div>
+            
+            <div class="form-group">
+                <div class="form-label">Any of these words:</div>
+                <div class="form-input">
+                    <input type="text" name="as_oq" placeholder="Type OR between all the words you want">
+                </div>
+                <div class="form-hint">Type OR between all the words you want: miniature OR standard</div>
+            </div>
+            
+            <div class="form-group">
+                <div class="form-label">None of these words:</div>
+                <div class="form-input">
+                    <input type="text" name="as_eq" placeholder="Put a minus sign just before words">
+                </div>
+                <div class="form-hint">Put a minus sign just before words: -rodent, -"Jack Russell"</div>
+            </div>
+            
+            <div class="buttons-container">
+                <button type="reset" class="clear-button">Clear</button>
+                <button type="submit" class="advanced-search-button">Advanced Search</button>
+            </div>
+        </form>
+    </main>
+    
+    <footer>
+        <p>&copy; 2024 Google Advanced Search - project 0</p>
+    </footer>
+</body>
+</html>

@@ -1,207 +1,53 @@
-# Mundo Campero 
+# Mundo Campero
 
----
+## Distinctiveness and Complexity
 
-## Description
+### Why Mundo Campero is Distinctive
 
-### What is Mundo Campero?
+Mundo Campero distinguishes itself through its unique focus on sheep herd management, a niche not commonly explored in typical web development projects. This application integrates real-world agricultural practices into a digital platform, offering a practical tool for farmers and agricultural businesses. By addressing a non-traditional theme with real-world applicability, Mundo Campero provides valuable resources for users in the agricultural sector, setting it apart from more conventional projects.
 
-Mundo campero is an comprehensive web application for managing sheep herds,designed to simplify agricultural activities related to sheep breeding and management. This project was developed as part of **CS50’s Web Programming with Python and JavaScript** at Harvard, tackling a challenge beyond the examples provided in the course.
+### Complexity of the Project
 
-The sheep managment is a part of the beginning of something bigger which aims to integrate agriculture activities into single application.
+The complexity of Mundo Campero is evident in its comprehensive feature set and the technical challenges it addresses. A key decision was to utilize Django signals to automatically populate the list of sheep breeds and purity qualifiers upon migrations, streamlining the setup process. Additionally, the project employs custom APIs built with Django REST Framework to facilitate real-time updates for sheep and sales records, as well as data analyses on sheep quantities and sales types (slaughterhouse, donations, auctions). While previous projects have utilized the Fetch API, Mundo Campero advances this by implementing custom APIs, enhancing the application's responsiveness and user experience.
 
-### Why Choose This Topic?
+Although the application is not yet fully complete, future developments are planned to expand its capabilities. All data updates occur in real-time, ensuring a seamless and fluid user experience. This commitment to real-time data processing and the integration of advanced features underscores the project's complexity and innovation.
 
-1.	Distinctiveness: The topic is unique and goes beyond the common projects typically seen in the course.
-2.	Challenge: It presents significant technical challenges, such as dynamic data fetching through custom local APIs and designing a modern, responsive user interface.
-3.	Personal Connection: My family’s involvement in the agricultural sector inspired me to create a practical and impactful tool for this field. 
+## Project Overview
 
-### Distinctiveness and Complexity
+### Description
 
-### Why Mundo campero is distinctive?
+Mundo Campero is a comprehensive web application designed to simplify sheep herd management. Developed as part of CS50’s Web Programming with Python and JavaScript, this project tackles challenges beyond the examples provided in the course. It aims to integrate various agricultural activities into a single application, offering features such as detailed sheep records, sales management, and analytics.
 
-Mundo Campero is distinctive because it combines:
-   * A non-traditional theme (sheep herd management) with real-world applicability.
-   * A complex backend that includes local APIs for efficient and dynamic data communication between the frontend and backend.
+### Features
 
+- **Sheep Management:** Record and update data such as breed, weight, gender, status, and genealogy.
+- **Sales Management:** Record individual, batch, or slaughterhouse sales and calculate transaction statistics.
+- **Analytics and Statistics:** Display herd statistics and generate graphs for data visualization.
+- **Local API Consumption:** Create APIs for dynamic data fetching.
+- **Access and Authentication:** Implement user registration and role-based access control.
+- **Usability:** Design a responsive, user-friendly interface.
 
-### Why is Mundo Campero Complex?
-
-The project involves:
- *	Designing and consuming custom APIs for CRUD operations on sheep and sales records.
- *	Implementing a dashboard with dynamic graphs and statistics for data visualization.
- *	Developing a robust authentication system with role-based access control.
- *	Combining frontend and backend technologies to deliver a seamless experience.
----
-
-## Project structure
-![s1](./imagenes_proyecto/estructura_app1.png)
-![s2](./imagenes_proyecto/estructura_app2.png)
+## Project Structure
 
 ### Directory Overview
 
-#### **Root-Level Files**
-- **`utils.py`**: Contains utility functions used throughout the project to streamline operations or handle repetitive tasks.
-- **`urls.py`**: Defines the URL routing for the application, mapping endpoints to their respective views.
-- **`views.py`**: Houses the core logic for handling HTTP requests and responses.
-- **`models.py`**: Defines the database models, outlining the structure of the application's data.
-- **`admin.py`**: Configures how models are displayed and managed in the Django Admin interface.
-- **`serializers.py`**: Converts complex data types (e.g., models) into JSON for API consumption and vice versa.
-- **`signals.py`**: Manages Django signals for automating certain actions when specific events occur (e.g., saving a model).
-- **`utils_descargas.py`**: Provides utility functions for handling file downloads and related operations.
-
----
-
-#### **Template Structure**
-- **`/templates/ganaderia/`**: Root folder for all HTML templates related to the "ganaderia" module.  
-- **`/templates/ganaderia/components/`**: Contains reusable UI components to ensure modularity and reduce code repetition.
-- **`/templates/ganaderia/components/modals/`**: Templates for modal dialogs used throughout the application.
-- **`/templates/ganaderia/components/dashboard/`**: Specific components for the dashboard, such as widgets and statistics displays.
-
----
-
-
-## Project Preview
-
-### Application Screenshots
-
-#### Home Page
-![Home Page](./imagenes_proyecto/captura_index1.png)
-![Home Page2](./imagenes_proyecto/captura_index2.png)
-![Home Page3](./imagenes_proyecto/captura_index3.png)
-
-### Ovino Hub
-![ovino hub](./imagenes_proyecto/ovinoHub.png)
-![ovino hub1](./imagenes_proyecto/ovinoHub2.png)
-
-#### Dashboard
-![Dashboard](./imagenes_proyecto/dashboard.png)
-
-### Sheep managment
-![sheep managment](./imagenes_proyecto/registro_ovino.png)
-![sheep managment](./imagenes_proyecto/registro_ovino1.png)
-![sheep detail](./imagenes_proyecto/detail.png)
-
-### Sales
-![sales1](./imagenes_proyecto/registro_venta.png)
-![dashboard1](./imagenes_proyecto/dashboard1.png)
-#### Statistic 
-![Statistics Dashboard](./imagenes_proyecto/statstic.png)
-
-### Video Tutorial
-Watch the tutorial embedded in the [homepage](http://127.0.0.1:8000) or view it directly on [YouTube](https://youtu.be/h0gDXW7UJfA).
-
----
-
-
-
-
-## Project Requirements
-
-### General Objectives
-Develop an application capable of:  
-- Managing detailed records of a sheep herd, including general data, genealogy, status, and transactions.  
-- Providing valuable statistics and analysis for herd management.  
-- Implementing a simple and accessible interface for users with varying levels of technical expertise.  
-
-### Functional Requirements
-
-1. **Sheep Management:**  
-   - Record data such as breed, weight, gender, status (active, sold, deceased), and genealogy.  
-   - Update the status of sheep, such as registering sales or deaths.  
-   - Edit and delete existing records.  
-
-2. **Sales Management:**  
-   - Record individual, batch, or slaughterhouse sales.  
-   - Register sale values and calculate transaction statistics.  
-
-3. **Analytics and Statistics:**  
-   - Display herd statistics (total number of sheep, status, predominant breeds, etc.).  
-   - Generate graphs to facilitate data visualization.  
-
-4. **Local API Consumption:**  
-   - Create APIs to allow the frontend to dynamically fetch data from the backend efficiently.  
-
-5. **Access and Authentication:**  
-   - Implement a user registration and authentication system.  
-   - Restrict access to certain functionalities based on user roles.  
-
-6. **Usability:**  
-   - Design a responsive, user-friendly interface.  
-
-### Non-Functional Requirements
-
-- **Scalability:** The system must be scalable to support a larger database in the future.  
-- **Efficiency:** Minimize response times in API consumption.  
-- **Security:** Protect user data using encryption and secure practices.  
-
----
-
-## Use Cases
-
-### Use Case: Register a Sheep
-1. **Primary Actor:** Registered user.  
-2. **Main Flow:**  
-   - The user accesses the sheep registration form.  
-   - Enters required data (breed, weight, gender, status, etc.).  
-   - Saves the record.  
-3. **Expected Outcome:** The sheep is successfully registered and appears in the list of active sheep.  
-
-### Use Case: Register a Sale
-1. **Primary Actor:** Registered user.  
-2. **Main Flow:**  
-   - The user selects sheep to sell.  
-   - Enters sale information (type of sale, value, date).  
-   - Saves the record.  
-3. **Expected Outcome:** The selected sheep are marked as "sold," and the sale is successfully recorded.  
-
-### Use Case: Generate Statistics
-1. **Primary Actor:** Registered user.  
-2. **Main Flow:**  
-   - The user accesses the analytics section.  
-   - Views dynamically generated graphs and statistics.  
-3. **Expected Outcome:** The user obtains valuable insights for herd management.  
-
----
-
-## Design Documentation
-
-### Architecture Diagram
-
-The application follows an **MVC** (Model-View-Controller) architecture:  
-
-- **Frontend:** HTML, CSS, JavaScript, and Bootstrap.  
-- **Backend:** Django + Django REST Framework to handle server logic and APIs.  
-- **Database:** SQLite (for development) with plans to migrate to PostgreSQL.  
-
-### Local APIs
-
-- **Sheep Endpoint:**  
-  - `GET /api/ovejas/`: Lists all sheep.  
- 
-  
-
-- **Sales Endpoint:**  
-  - `GET /api/ventas/`: Lists all recorded sales.  
- 
-
----
-
-## Technologies Used
-
-- **Backend:** Django + Django REST Framework + Python.  
-- **Frontend:** HTML, CSS, JavaScript, Bootstrap.  
-- **Database:** SQLite (development), PostgreSQL (future).  
-- **Development Tools:** VS Code, Git, and GitHub.  
-
----
-
-## Installation
+- **`MundoCampero/`**: Contains the main Django application files.
+- **`ganaderia/`**: Includes models, views, templates, and static files related to sheep management.
+- **`templates/ganaderia/`**: HTML templates for the application.
+- **`static/ganaderia/`**: CSS and JavaScript files for styling and functionality.
+- **`forms/`**: Likely contains Django forms for handling user input.
+- **`signals.py`**: Contains Django signals used for triggering actions automatically during certain events, such as populating data upon migrations.
+- **`serializers.py`**: Defines serializers for converting complex data types, like querysets and model instances, into native Python datatypes that can then be easily rendered into JSON or other content types.
+- **`utils_descargas.py`**: Utility functions related to downloading or exporting data.
+- **`utils.py`**: General utility functions used throughout the application.
+- **`requirements.txt`**: Lists all Python packages required to run the application.
+- **`test/`**: Contains unit tests for the application.
 
 ### Requirements
-- Python 3.9+  
-- Django 4.0+  
-- Dependencies listed in `requirements.txt`.  
+
+- Python 3.9+
+- Django 4.0+
+- Dependencies listed in `requirements.txt`.
 
 ### Installation Steps:
 1. Clone the repository:  
@@ -227,18 +73,56 @@ The application follows an **MVC** (Model-View-Controller) architecture:
     ```bash
     python3 manage.py runserver
 
- #### Access the application at http://127.0.0.1:8000.
----
+6. Clean the database(optional):
+   * Flush the database:
+   ```bash
+   python3 manage.py flush
+   ```
+   * This command will remove all data from the database.You will be prompted to confirm action.
+   * Remove the database file:
+   ```bash
+      rm -rf db.sqlite3
+   ```
+   * This command delete the SQLite databse file
+   * Clear migration files:
+   ```bash
+      find . -path "*/migrations/*.py" -not -name "__init__.py" -delete
+      find . -path "*/migrations/*.pyc" -delete
+   ```
+   These commands remove all migration files except for the `__init__.py` file.
 
-## Next steps
-
-1.	Implement advanced analytics using language models (LLMs).
-2.	Create a system for bulk sheep registration via Excel files.
-3.	Add options to manage documents (vaccination records, life histories).
-4.	Enhance data export features in Excel and PDF formats.
-5.	Expand local API functionalities.
+### Video Tutorial
+[![Watch the tutorial](https://img.youtube.com/vi/u8muzUppjRw/0.jpg)](https://youtu.be/u8muzUppjRw?t=0)
 
 
 
+## How to Use Mundo Campero
 
+### Overview
 
+Mundo Campero is designed to centralize all agricultural activities into a single application. Currently, the focus is on sheep management and sales management, with data analysis features for each. The home page introduces users to the philosophy of Mundo Campero, which aims to integrate livestock management, agriculture, marketplace, and job board functionalities.
+
+### User Registration
+
+To use the application, users need to register by providing the name of their establishment, the RUT (national ID) of the company, and the ARU (Rural Association of Uruguay) identifier. While registration with ARU is not mandatory at the moment, it will be required in the future for full functionality.
+
+### Navigation
+
+- **Home:** Users can explore the features of Mundo Campero and view the development roadmap.
+- **Hub:** This is the main menu of the app, offering quick access to various sections such as the dashboard, reports, family tree, and documentation. Future updates will include sheep documentation management and report generation.
+- **Dashboard:** The control panel where users can manage sheep and sales records, and view data analyses. Users can register sheep, record sales, and analyze sales and sheep data. Future updates will allow for group sheep classification for better management.
+- **Sheep and Sales:** Direct access to sheep and sales records.
+
+### Features
+
+- **Recent Activities:** Users can view recent activities and updates.
+- **Price Calculator:** A tool for estimating meat prices at slaughterhouses. Future updates will provide real-time price updates.
+- **Data Analysis:** Analyze sales and sheep data to gain insights into herd management.
+
+### Future Enhancements
+
+- **Real-Time Price Updates:** Integration with external APIs to provide live meat prices.
+- **Sheep Documentation:** Manage and generate reports for sheep documentation.
+- **Enhanced Analytics:** Advanced data analysis tools for better decision-making.
+
+By following this guide, users can effectively navigate and utilize the current features of Mundo Campero, while also understanding the future enhancements planned for the application.

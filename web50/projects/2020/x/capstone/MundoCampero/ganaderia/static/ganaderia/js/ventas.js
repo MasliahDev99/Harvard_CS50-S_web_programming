@@ -1,191 +1,216 @@
+document.addEventListener("DOMContentLoaded", () => {
+  // DOM elements
+  const saleType = document.getElementById("saleType")
+  const batchSale = document.getElementById("batchSale")
+  const animalSelect = document.getElementById("animalSelect")
+  const selectedAnimals = document.getElementById("selectedAnimals")
+  const frigorificoFields = document.getElementById("frigorificoFields")
+  const remateFields = document.getElementById("remateFields")
+  const individualFields = document.getElementById("individualFields")
+  const totalWeight = document.getElementById("totalWeight")
+  const pricePerKg = document.getElementById("pricePerKg")
+  const remateTotal = document.getElementById("remateTotal")
+  const totalSaleValue = document.getElementById("totalSaleValue")
+  const confirmSaleBtn = document.getElementById("confirmSale")
+  const saleDate = document.getElementById("saleDate")
 
+  let availableSheep = []
 
+  function fetchAvailableSheep() {
+    fetch("/api/ovejas/")
+      .then((response) => {
+        if (!response.ok) throw new Error("Error loading the list of animals.")
+        return response.json()
+      })
+      .then((data) => {
+        availableSheep = data
+        loadSheepOptions()
+      })
+      .catch((error) => console.error("Error:", error))
+  }
 
+  function loadSheepOptions() {
+    animalSelect.innerHTML = ""
+    const fragment = document.createDocumentFragment()
+    availableSheep.forEach((sheep) => {
+      const option = document.createElement("option")
+      option.value = sheep.id
+      option.textContent = sheep.RP
+        ? `RP: ${sheep.RP} - Weight: ${sheep.weight} kg`
+        : `ID: ${sheep.id} - Purity: ${sheep.purity_qualifier} - Weight: ${sheep.weight} kg`
+      fragment.appendChild(option)
+    })
+    animalSelect.appendChild(fragment)
+  }
 
-document.addEventListener('DOMContentLoaded', function() {
-    // Elementos del DOM
-    const saleType = document.getElementById('saleType');
-    const batchSale = document.getElementById('batchSale');
-    const animalSelect = document.getElementById('animalSelect');
-    const selectedAnimals = document.getElementById('selectedAnimals');
-    const frigorificoFields = document.getElementById('frigorificoFields');
-    const remateFields = document.getElementById('remateFields');
-    const individualFields = document.getElementById('individualFields');
-    const totalWeight = document.getElementById('totalWeight');
-    const pricePerKg = document.getElementById('pricePerKg');
-    const remateTotal = document.getElementById('remateTotal');
-    const totalSaleValue = document.getElementById('totalSaleValue');
-    const confirmSaleBtn = document.getElementById('confirmSale');
+  fetchAvailableSheep()
 
+  // Event Listeners
+  saleType.addEventListener("change", updateFormFields)
+  batchSale.addEventListener("change", updateAnimalSelection)
+  animalSelect.addEventListener("change", updateSelectedAnimals)
+  pricePerKg.addEventListener("input", calculateSlaughterhouseTotal)
+  remateTotal.addEventListener("input", updateTotalSaleValue)
+  confirmSaleBtn.addEventListener("click", submitSaleForm)
+
+  function updateFormFields() {
+    frigorificoFields.style.display = saleType.value === "slaughterhouse" ? "block" : "none"
+    remateFields.style.display = saleType.value === "auction" ? "block" : "none"
+    individualFields.style.display = saleType.value === "individual" ? "block" : "none"
+
+    if (saleType.value === "donation") {
+      totalSaleValue.value = "0"
+    }
+
+    updateAnimalSelection()
+    updateSelectedAnimals()
+  }
+
+  function updateAnimalSelection() {
+    animalSelect.multiple = !batchSale.checked
+    if (batchSale.checked) {
+      Array.from(animalSelect.selectedOptions)
+        .slice(10)
+        .forEach((option) => (option.selected = false))
+    }
+    updateSelectedAnimals()
+  }
+
+  function updateSelectedAnimals() {
+    selectedAnimals.innerHTML = ""
+    let totalWeightValue = 0
+
+    Array.from(animalSelect.selectedOptions).forEach((option) => {
+      const animal = availableSheep.find((a) => a.id.toString() === option.value)
+      if (animal) {
+        const li = document.createElement("li")
+        li.className = "list-group-item d-flex justify-content-between align-items-center"
+        li.textContent = animal.RP
+          ? `RP: ${animal.RP} - ${animal.weight} kg`
+          : `ID: ${animal.id} - Purity: ${animal.purity_qualifier} - ${animal.weight} kg`
+
+        if (saleType.value === "individual") {
+          const input = document.createElement("input")
+          input.type = "number"
+          input.className = "form-control form-control-sm w-25"
+          input.id = `price_${animal.id}`
+          input.name = `price_${animal.id}`
+          input.placeholder = "Price"
+          input.addEventListener("input", calculateIndividualTotal)
+          li.appendChild(input)
+        }
+
+        selectedAnimals.appendChild(li)
+        totalWeightValue += animal.weight
+      }
+      option.style.color = "green"
+    })
+
+    Array.from(animalSelect.options).forEach((option) => {
+      if (!option.selected) {
+        option.style.color = ""
+      }
+    })
+
+    totalWeight.value = totalWeightValue.toFixed(2)
+    calculateSlaughterhouseTotal()
+  }
+
+  function calculateSlaughterhouseTotal() {
+    if (saleType.value === "slaughterhouse") {
+      const total = (Number.parseFloat(totalWeight.value) || 0) * (Number.parseFloat(pricePerKg.value) || 0)
+      totalSaleValue.value = total.toFixed(2)
+    }
+  }
+
+  function calculateIndividualTotal() {
+    if (saleType.value === "individual") {
+      let total = 0
+      selectedAnimals.querySelectorAll("input").forEach((input) => {
+        total += Number.parseFloat(input.value) || 0
+      })
+      totalSaleValue.value = total.toFixed(2)
+    }
+  }
+
+  function updateTotalSaleValue() {
+    if (saleType.value === "auction") {
+      totalSaleValue.value = remateTotal.value
+    }
+  }
+
+  function submitSaleForm(event) {
+    event.preventDefault()
   
-
-
-
-    // Array para almacenar los ovinos disponibles
-    let ovinosDisponibles = [];
-
-    // Obtener los ovinos disponibles desde el servidor
-    function obtenerOvinosServidor() {
-        fetch('/api/ovejas/')
-            .then(response => {
-                if (!response.ok) throw new Error('Error al cargar la lista de animales.');
-                return response.json();
-            })
-            .then(data => {
-                // Ordenar los ovinos por RP
-                ovinosDisponibles = data.sort((a, b) => a.RP.localeCompare(b.RP, undefined, {numeric: true}));
-                cargarOvinos();
-            })
-            .catch(error => console.error('Error:', error));
+    const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value
+  
+    const individualPrices = []
+  
+    selectedAnimals.querySelectorAll("input").forEach((input) => {
+      const animalId = input.id.split("_")[1]
+      individualPrices.push({
+        animal_id: animalId,
+        sale_price: Number.parseFloat(input.value) || 0,
+      })
+    })
+  
+    console.log("Individual Prices:", individualPrices)
+  
+    const URL = `${window.location.origin}/hub/dashboard/ventas/`
+    console.log("Fetch URL:", URL)
+  
+    const saleData = {
+      tipo_venta: saleType.value,
+      por_lote: batchSale.checked,
+      ovinos: Array.from(animalSelect.selectedOptions).map((o) => o.value),
+      fecha_venta: saleDate.value,
+      valor_total: totalSaleValue.value,
+      precio_individual: individualPrices,
     }
-
-    // Cargar los ovinos en el select
-    function cargarOvinos() {
-        animalSelect.innerHTML = '';
-        const fragment = document.createDocumentFragment();
-        ovinosDisponibles.forEach(ovino => {
-            const option = new Option(`RP: ${ovino.RP} - ${ovino.peso} kg`, ovino.RP);
-            fragment.appendChild(option);
-        });
-        animalSelect.appendChild(fragment);
+  
+    if (saleType.value === "slaughterhouse") {
+      saleData.peso_total = totalWeight.value
+      saleData.precio_kg = pricePerKg.value
+    } else if (saleType.value === "auction") {
+      saleData.remate_total = remateTotal.value
     }
-
-    // Llamar a la función para obtener los ovinos al cargar la página
-    obtenerOvinosServidor();
-
-    // Event Listeners
-    saleType.addEventListener('change', updateFormFields);
-    batchSale.addEventListener('change', updateAnimalSelection);
-    animalSelect.addEventListener('change', updateSelectedAnimals);
-    pricePerKg.addEventListener('input', calculateFrigorificoTotal);
-    remateTotal.addEventListener('input', updateTotalSaleValue);
-    confirmSaleBtn.addEventListener('click', submitSaleForm);
-
-    // Actualizar los campos del formulario según el tipo de venta
-    function updateFormFields() {
-        frigorificoFields.style.display = saleType.value === 'frigorifico' ? 'block' : 'none';
-        remateFields.style.display = saleType.value === 'remate' ? 'block' : 'none';
-        individualFields.style.display = saleType.value === 'individual' ? 'block' : 'none';
-        
-        if (saleType.value === 'donacion') {
-            totalSaleValue.value = '0';
+  
+    console.log("Sale data to be sent:", saleData)
+  
+    fetch(URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": csrfToken,
+      },
+      body: JSON.stringify(saleData),
+    })
+      .then(async (response) => {
+        const contentType = response.headers.get("content-type")
+        if (contentType && contentType.includes("application/json")) {
+          return response.json()
         }
-        
-        updateAnimalSelection();
-        updateSelectedAnimals();
-    }
-
-    // Actualizar la selección de animales
-    function updateAnimalSelection() {
-        animalSelect.multiple = !batchSale.checked;
-        if (batchSale.checked) {
-            Array.from(animalSelect.selectedOptions).slice(10).forEach(option => option.selected = false);
+        const text = await response.text()
+        throw new Error(`Server returned non-JSON response: ${text}`)
+      })
+      .then((data) => {
+        if (data.success) {
+          console.log("Sale registered successfully:", data)
+          window.location.reload()
+        } else {
+          console.error("Error in sale registration:", data.error)
+          alert(`Error: ${data.error}`)
         }
-        updateSelectedAnimals();
-    }
+      })
+      .catch((error) => {
+        console.error("Error:", error)
+        alert("An error occurred while processing the sale. Please check the console for details.")
+      })
+  
+    bootstrap.Modal.getInstance(document.getElementById("addSaleModal")).hide()
+    document.getElementById("addSaleForm").reset()
+  }
+  
+  
+})
 
-    // Actualizar la lista de animales seleccionados
-    function updateSelectedAnimals() {
-        selectedAnimals.innerHTML = '';
-        let totalWeightValue = 0;
-        
-        Array.from(animalSelect.options).forEach(option => {
-            const animal = ovinosDisponibles.find(a => a.RP === option.value);
-            if (option.selected) {
-                const li = document.createElement('li');
-                li.className = 'list-group-item d-flex justify-content-between align-items-center';
-                li.textContent = `RP: ${animal.RP} - ${animal.peso} kg`;
-
-                if (saleType.value === 'individual') {
-                    const input = document.createElement('input');
-                    input.type = 'number';
-                    input.className = 'form-control form-control-sm w-25';
-                    input.placeholder = 'Precio';
-                    input.addEventListener('input', calculateIndividualTotal);
-                    li.appendChild(input);
-                }
-                
-                selectedAnimals.appendChild(li);
-                totalWeightValue += animal.peso;
-                option.style.color = 'green';
-            } else {
-                option.style.color = '';
-            }
-        });
-
-        totalWeight.value = totalWeightValue.toFixed(2);
-        calculateFrigorificoTotal();
-    }
-
-    // Calcular el total para venta a frigorífico
-    function calculateFrigorificoTotal() {
-        if (saleType.value === 'frigorifico') {
-            const total = (parseFloat(totalWeight.value) || 0) * (parseFloat(pricePerKg.value) || 0);
-            totalSaleValue.value = total.toFixed(2);
-        }
-    }
-
-    // Calcular el total para ventas individuales
-    function calculateIndividualTotal() {
-        if (saleType.value === 'individual') {
-            let total = 0;
-            selectedAnimals.querySelectorAll('input').forEach(input => {
-                total += parseFloat(input.value) || 0;
-            });
-            totalSaleValue.value = total.toFixed(2);
-        }
-    }
-
-    // Actualizar el valor total de la venta en el caso de remate
-    function updateTotalSaleValue() {
-        if (saleType.value === 'remate') {
-            totalSaleValue.value = remateTotal.value;
-        }
-    }
-
-    // Enviar el formulario de venta al servidor para registrar la venta
-    function submitSaleForm(event) {
-        event.preventDefault();
-        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-
-    
-        // URL para enviar los datos al servidor
-        URL = window.location.origin+'/hub/dashboard/ventas/'
-        console.log("La url del fetch es: ",URL)
-        fetch(URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrfToken,
-            },
-            body: JSON.stringify({
-                tipo_venta: saleType.value,
-                por_lote: batchSale.checked,
-                ovinos: Array.from(animalSelect.selectedOptions).map(o => o.value),
-                peso_total: totalWeight.value,
-                precio_kg: pricePerKg.value,
-                remate_total: remateTotal.value,
-                fecha_venta: saleDate.value,
-                valor_total: totalSaleValue.value,
-            })
-            
-        })
-        .then(response => response.json())
-        .then(data => {
-            console.log('Success:', data);
-            if(data.success){
-                //si fue un exito refresca la pagina
-                window.location.reload();
-            }else{
-                console.error('Error en el registro de la venta:', data.message);
-            }
-        })
-        .catch(error => console.error('Error:', error))
-
-
-
-
-        bootstrap.Modal.getInstance(document.getElementById('addSaleModal')).hide();
-        document.getElementById('addSaleForm').reset();
-    }
-});
